@@ -5,6 +5,7 @@ import { DonutChart } from "./components/DonutChart.jsx";
 import { Footer } from "./components/Footer.jsx";
 import { HeroCard } from "./components/HeroCard.jsx";
 import { LanguagesCard } from "./components/LanguagesCard.jsx";
+import { OverthinkerChat } from "./components/OverthinkerChat.jsx";
 import { SkillsGrid } from "./components/SkillsGrid.jsx";
 import { TelemetryCard } from "./components/TelemetryCard.jsx";
 import { Topbar } from "./components/Topbar.jsx";
@@ -102,6 +103,15 @@ export function App() {
       </motion.main>
 
       <Footer />
+
+      <OverthinkerChat
+        profile={profile}
+        skills={skills}
+        languages={languages}
+        totalLanguagesCount={totalLanguagesCount}
+        syncedAt={syncedAt}
+        statusText={statusText}
+      />
 
       <ChatWidget />
     </MotionConfig>
