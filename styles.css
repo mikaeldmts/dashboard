@@ -235,25 +235,6 @@ h2 {
   color: var(--text-secondary);
 }
 
-.topbar-admin-link {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-sm);
-  background: var(--surface-0);
-  border: 1px solid var(--line);
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-  text-decoration: none;
-  font-size: 0.82rem;
-  transition: all var(--transition);
-}
-
-.topbar-admin-link:hover {
-  background: var(--surface-1);
-  color: var(--text);
-  border-color: var(--line-hover);
-}
 
 /* ================================================================
    Cards (Frosted Glass)
@@ -784,39 +765,12 @@ details.skills-explainer-details[open] .summary-chevron {
 
 .site-footer-inner {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding-top: 20px;
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 0.78rem;
-}
-
-.admin-footer-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 14px;
-  text-decoration: none;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--muted);
-  background: var(--surface-0);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  transition: all var(--transition);
-}
-
-.admin-footer-link:hover {
-  transform: translateY(-1px);
-  color: var(--text);
-  background: var(--surface-1);
-  border-color: var(--line-hover);
-  box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.4);
-}
-
-.admin-footer-link i {
-  font-size: 0.82rem;
 }
 
 /* ================================================================
