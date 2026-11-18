@@ -2,13 +2,8 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import { Background } from "./components/Background.jsx";
 import { ChatWidget } from "./components/ChatWidget.jsx";
-import { DonutChart } from "./components/DonutChart.jsx";
-import { Footer } from "./components/Footer.jsx";
-import { HeroCard } from "./components/HeroCard.jsx";
-import { LanguagesCard } from "./components/LanguagesCard.jsx";
+import { GitHubDashboardView } from "./components/GitHubDashboardView.jsx";
 import { OverthinkerChat } from "./components/OverthinkerChat.jsx";
-import { SkillsGrid } from "./components/SkillsGrid.jsx";
-import { TelemetryCard } from "./components/TelemetryCard.jsx";
 import { Topbar } from "./components/Topbar.jsx";
 import { WelcomePortal } from "./components/WelcomePortal.jsx";
 import { WorldAnalysisView } from "./components/WorldAnalysisView.jsx";
@@ -16,29 +11,7 @@ import { useGithubData } from "./hooks/useGithubData.js";
 import { useSkillsAnalysis } from "./hooks/useSkillsAnalysis.js";
 import { useWorldIntel } from "./hooks/useWorldIntel.js";
 
-const layoutContainerVariants = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.08
-    }
-  }
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 14 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.45,
-      ease: [0.22, 1, 0.36, 1]
-    }
-  }
-};
-
 export function App() {
-  // Visitor starts on the bespoke Welcome Portal; clicking "Ir para o Dashboard" enters Realtime World Analysis ("world")
   const [activeView, setActiveView] = useState("welcome");
 
   const {
@@ -63,7 +36,6 @@ export function App() {
     chartNote
   } = useSkillsAnalysis(repos);
 
-  // Pre-warm planetary intelligence right away so entering from Welcome is instantaneous
   const {
     globalData,
     selectedCountry,
@@ -94,7 +66,9 @@ export function App() {
       ? "offline"
       : "online";
 
+  // Minimal world context snapshot passed to Overthinker (World view mode only)
   const worldSnapshot = useMemo(() => {
+    if (activeView !== "world") return null;
     const src = activeIntel || globalData;
     if (!src) return null;
     return {
@@ -108,7 +82,7 @@ export function App() {
         probability: p.probability
       }))
     };
-  }, [activeIntel, globalData, selectedCountry]);
+  }, [activeIntel, globalData, selectedCountry, activeView]);
 
   function handleNavigate(nextView) {
     setActiveView(nextView);
@@ -166,54 +140,39 @@ export function App() {
                 onClearCountry={clearCountry}
               />
             ) : (
-              <motion.main
-                className="layout"
-                variants={layoutContainerVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                <div className="bento-top">
-                  <HeroCard profile={profile} variants={cardVariants} />
-                  <TelemetryCard profile={profile} syncedAt={syncedAt} variants={cardVariants} />
-                </div>
-
-                <div className="bento-mid">
-                  <DonutChart
-                    slices={languages}
-                    totalLanguages={totalLanguagesCount}
-                    totalBytes={totalBytes}
-                    chartNote={chartNote}
-                    variants={cardVariants}
-                  />
-                  <LanguagesCard variants={cardVariants} />
-                </div>
-
-                <SkillsGrid
-                  skills={isColdSkillsLoading ? [] : skills}
-                  skillsCountNote={isColdSkillsLoading ? "Aguardando análise..." : skillsCountNote}
-                  isLoading={ghIsLoading}
-                  hasReposData={hasReposData}
-                  error={ghError}
-                  variants={cardVariants}
-                />
-              </motion.main>
+              <GitHubDashboardView
+                profile={profile}
+                repos={repos}
+                syncedAt={syncedAt}
+                error={ghError}
+                isLoading={ghIsLoading}
+                hasReposData={hasReposData}
+                skills={isColdSkillsLoading ? [] : skills}
+                skillsCountNote={isColdSkillsLoading ? "Aguardando análise..." : skillsCountNote}
+                languages={languages}
+                totalLanguagesCount={totalLanguagesCount}
+                totalBytes={totalBytes}
+                chartNote={chartNote}
+                ghStatusText={ghStatusText}
+              />
             )}
-
-            <Footer />
           </motion.div>
         )}
       </AnimatePresence>
 
-      <OverthinkerChat
-        activeView={activeView}
-        worldSnapshot={worldSnapshot}
-        profile={profile}
-        skills={skills}
-        languages={languages}
-        totalLanguagesCount={totalLanguagesCount}
-        syncedAt={syncedAt}
-        statusText={activeView === "world" ? worldStatusText : ghStatusText}
-      />
+      {/* Overthinker: World mode = world analyst; GitHub mode = renders as inline chat in GitHubDashboardView */}
+      {activeView === "world" && (
+        <OverthinkerChat
+          activeView="world"
+          worldSnapshot={worldSnapshot}
+          profile={null}
+          skills={[]}
+          languages={[]}
+          totalLanguagesCount={0}
+          syncedAt={null}
+          statusText={worldStatusText}
+        />
+      )}
 
       <ChatWidget />
     </MotionConfig>

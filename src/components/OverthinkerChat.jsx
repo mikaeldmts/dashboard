@@ -1,58 +1,60 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUp, GitBranch, RotateCcw, Sparkles, X } from "lucide-react";
+import { ArrowUp, GitBranch, Globe2, RotateCcw, Sparkles, X } from "lucide-react";
 import { SPOKEN_LANGUAGES } from "../lib/constants.js";
 
-const INITIAL_ASSISTANT_MESSAGE = {
+// ------------------------------------------------------------------ constants
+const INITIAL_GITHUB_MSG = {
   id: "overthinker-welcome",
   role: "assistant",
   content:
-    "Olá! Eu sou o **Overthinker** — já analisei cada métrica deste dashboard e consulto a API do GitHub de **@mikaeldmts** em tempo real. Sobre o que vamos pensar hoje?",
+    "Olá! Eu sou o **Overthinker**, analista neural do portfólio de **Mikael F. de Matos**.\n\nAqui você pode me perguntar qualquer coisa sobre a trajetória profissional do Mikael — projetos, skills, linguagens, idiomas, experiência ou o que quiser saber. Pode perguntar também por que ele faria uma boa adição ao seu time!",
   usedGithubTool: false
 };
 
-const QUICK_PROMPTS = [
+const INITIAL_WORLD_MSG = {
+  id: "overthinker-welcome",
+  role: "assistant",
+  content:
+    "Olá! Eu sou o **Overthinker** — analista desta suite de inteligência global.\n\nEstou monitorando o pulso planetário em tempo real: geopolítica, economia, tecnologia, sismos e muito mais. Pergunte-me sobre qualquer acontecimento ou análise desta página.",
+  usedGithubTool: false
+};
+
+const QUICK_PROMPTS_GITHUB = [
   "Quais são os principais projetos do Mikael no GitHub?",
-  "Como funcionam as Top Skills e este dashboard?",
-  "Quais foram as últimas atividades no GitHub?",
-  "Quais idiomas o Mikael fala?"
+  "Quais tecnologias ele domina mais?",
+  "Quais idiomas o Mikael fala?",
+  "Por que contratar o Mikael?"
 ];
 
+const QUICK_PROMPTS_WORLD = [
+  "Qual o índice de tensão global agora?",
+  "O que está acontecendo no Oriente Médio?",
+  "Quais são as previsões estratégicas de curto prazo?",
+  "Quais países estão em destaque hoje?"
+];
+
+// ------------------------------------------------------------------ markdown renderer
 function renderInlineSegments(text, keyPrefix) {
   const pattern = /(\[[^\]]+\]\(https?:\/\/[^\s)]+\)|\*\*[^*]+\*\*|`[^`]+`)/g;
   const parts = text.split(pattern);
-
   return parts.map((part, idx) => {
     if (!part) return null;
     const key = `${keyPrefix}-${idx}`;
-
     const linkMatch = /^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/.exec(part);
     if (linkMatch) {
       return (
-        <a
-          key={key}
-          href={linkMatch[2]}
-          target="_blank"
-          rel="noreferrer"
-          className="overthinker-md-link"
-        >
+        <a key={key} href={linkMatch[2]} target="_blank" rel="noreferrer" className="overthinker-md-link">
           {linkMatch[1]}
         </a>
       );
     }
-
     if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
       return <strong key={key}>{part.slice(2, -2)}</strong>;
     }
-
     if (part.startsWith("`") && part.endsWith("`") && part.length > 2) {
-      return (
-        <code key={key} className="overthinker-md-code">
-          {part.slice(1, -1)}
-        </code>
-      );
+      return <code key={key} className="overthinker-md-code">{part.slice(1, -1)}</code>;
     }
-
     return part;
   });
 }
@@ -67,9 +69,7 @@ function FormattedMessage({ content }) {
       blocks.push(
         <ul key={`list-${idx}`} className="overthinker-md-list">
           {currentList.map((item, itemIdx) => (
-            <li key={`li-${idx}-${itemIdx}`}>
-              {renderInlineSegments(item, `li-${idx}-${itemIdx}`)}
-            </li>
+            <li key={`li-${idx}-${itemIdx}`}>{renderInlineSegments(item, `li-${idx}-${itemIdx}`)}</li>
           ))}
         </ul>
       );
@@ -79,17 +79,9 @@ function FormattedMessage({ content }) {
 
   lines.forEach((rawLine, idx) => {
     const trimmed = rawLine.trim();
-    if (!trimmed) {
-      flushList(idx);
-      return;
-    }
-
+    if (!trimmed) { flushList(idx); return; }
     const bulletMatch = /^[-*•]\s+(.+)$/.exec(trimmed);
-    if (bulletMatch) {
-      currentList.push(bulletMatch[1]);
-      return;
-    }
-
+    if (bulletMatch) { currentList.push(bulletMatch[1]); return; }
     flushList(idx);
     blocks.push(
       <p key={`p-${idx}`} className="overthinker-md-p">
@@ -102,12 +94,9 @@ function FormattedMessage({ content }) {
   return <div className="overthinker-md">{blocks}</div>;
 }
 
-function OverthinkerOrbIcon({ size = 34, isThinking = false }) {
-  const uid = useId().replace(/:/g, "");
-  const coreGradId = `ot-core-${uid}`;
-  const ringGradA = `ot-ring-a-${uid}`;
-  const ringGradB = `ot-ring-b-${uid}`;
-
+// ------------------------------------------------------------------ orb icon (shared)
+export function OverthinkerOrbIcon({ size = 34, isThinking = false }) {
+  const uid = Math.random().toString(36).slice(2, 8); // deterministic per mount
   return (
     <svg
       width={size}
@@ -118,185 +107,74 @@ function OverthinkerOrbIcon({ size = 34, isThinking = false }) {
       className={`overthinker-orb-svg${isThinking ? " thinking" : ""}`}
     >
       <defs>
-        <radialGradient id={coreGradId} cx="38%" cy="35%" r="65%">
+        <radialGradient id={`ot-core-${uid}`} cx="38%" cy="35%" r="65%">
           <stop offset="0%" stopColor="#e0f2fe" />
           <stop offset="45%" stopColor="#38bdf8" />
           <stop offset="100%" stopColor="#10b981" />
         </radialGradient>
-        <linearGradient id={ringGradA} x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id={`ot-ring-a-${uid}`} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.95" />
           <stop offset="50%" stopColor="#60a5fa" stopOpacity="0.35" />
           <stop offset="100%" stopColor="#34d399" stopOpacity="0.9" />
         </linearGradient>
-        <linearGradient id={ringGradB} x1="100%" y1="0%" x2="0%" y2="100%">
+        <linearGradient id={`ot-ring-b-${uid}`} x1="100%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor="#34d399" stopOpacity="0.9" />
           <stop offset="55%" stopColor="#38bdf8" stopOpacity="0.25" />
           <stop offset="100%" stopColor="#93c5fd" stopOpacity="0.95" />
         </linearGradient>
       </defs>
-
-      {/* Outer dashed cognitive halo */}
-      <circle
-        cx="24"
-        cy="24"
-        r="20"
-        stroke="rgba(147, 197, 253, 0.28)"
-        strokeWidth="1"
-        strokeDasharray="3 4"
-        className="ot-halo-ring"
-      />
-
-      {/* Tilted synaptic orbit A */}
+      <circle cx="24" cy="24" r="20" stroke="rgba(147,197,253,0.28)" strokeWidth="1" strokeDasharray="3 4" className="ot-halo-ring" />
       <g transform="rotate(-32 24 24)">
         <g className="ot-orbit-cw">
-          <ellipse
-            cx="24"
-            cy="24"
-            rx="17.5"
-            ry="7.5"
-            stroke={`url(#${ringGradA})`}
-            strokeWidth="1.5"
-          />
+          <ellipse cx="24" cy="24" rx="17.5" ry="7.5" stroke={`url(#ot-ring-a-${uid})`} strokeWidth="1.5" />
           <circle cx="41.5" cy="24" r="2.3" fill="#7dd3fc" />
         </g>
       </g>
-
-      {/* Tilted synaptic orbit B */}
       <g transform="rotate(34 24 24)">
         <g className="ot-orbit-ccw">
-          <ellipse
-            cx="24"
-            cy="24"
-            rx="17.5"
-            ry="7.5"
-            stroke={`url(#${ringGradB})`}
-            strokeWidth="1.5"
-          />
+          <ellipse cx="24" cy="24" rx="17.5" ry="7.5" stroke={`url(#ot-ring-b-${uid})`} strokeWidth="1.5" />
           <circle cx="6.5" cy="24" r="2.1" fill="#34d399" />
         </g>
       </g>
-
-      {/* Inner neural core */}
-      <circle cx="24" cy="24" r="8.2" fill="rgba(56, 189, 248, 0.18)" className="ot-core-pulse" />
-      <circle cx="24" cy="24" r="5.6" fill={`url(#${coreGradId})`} />
+      <circle cx="24" cy="24" r="8.2" fill="rgba(56,189,248,0.18)" className="ot-core-pulse" />
+      <circle cx="24" cy="24" r="5.6" fill={`url(#ot-core-${uid})`} />
       <circle cx="22.2" cy="22" r="1.5" fill="#ffffff" fillOpacity="0.85" />
     </svg>
   );
 }
 
-export function OverthinkerChat({
-  activeView = "world",
-  worldSnapshot = null,
-  profile,
-  skills,
-  languages,
-  totalLanguagesCount,
-  syncedAt,
-  statusText
+// ------------------------------------------------------------------ shared chat body
+function OverthinkerChatBody({
+  mode = "github", // "github" | "world"
+  initialMessage,
+  quickPrompts,
+  dashboardContext,
+  inputPlaceholder = "Pergunte algo...",
+  statusSubtitle = "",
+  showCloseButton = false,
+  onClose
 }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([INITIAL_ASSISTANT_MESSAGE]);
+  const [messages, setMessages] = useState([initialMessage]);
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
   const [errorText, setErrorText] = useState("");
 
-  const containerRef = useRef(null);
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  const dashboardContext = useMemo(
-    () => ({
-      activeView,
-      worldAnalysisSnapshot: worldSnapshot,
-      statusText: statusText || "Online",
-      syncedAt: syncedAt || null,
-      profile: profile
-        ? {
-            login: profile.login,
-            name: profile.name,
-            bio: profile.bio,
-            public_repos: profile.public_repos,
-            updated_at: profile.updated_at,
-            html_url: profile.html_url
-          }
-        : null,
-      topSkillsDisplayed: Array.isArray(skills)
-        ? skills.map((s) => ({
-            name: s.name,
-            percentage: s.percentage,
-            stars: s.stars,
-            type: s.type,
-            metric: s.metric
-          }))
-        : [],
-      languageDonutBreakdown: {
-        totalLanguagesCount: totalLanguagesCount ?? 0,
-        slices: Array.isArray(languages)
-          ? languages.map((l) => ({ name: l.name, percent: l.percent }))
-          : []
-      },
-      spokenLanguages: SPOKEN_LANGUAGES
-    }),
-    [activeView, worldSnapshot, profile, skills, languages, totalLanguagesCount, syncedAt, statusText]
-  );
+  const hasUserMessages = messages.some((m) => m.role === "user");
 
   useEffect(() => {
-    if (!isOpen) return undefined;
-    const isCoarsePointer =
-      typeof window !== "undefined" &&
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(pointer: coarse)").matches;
-    if (isCoarsePointer) return undefined;
-
-    const timer = setTimeout(() => {
-      inputRef.current?.focus({ preventScroll: true });
-    }, 80);
-    return () => clearTimeout(timer);
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return undefined;
-
-    function handleOutsideClick(event) {
-      if (containerRef.current && !containerRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    }
-
-    function handleKeyDown(event) {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleOutsideClick);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (
-      isOpen &&
-      messagesEndRef.current &&
-      typeof messagesEndRef.current.scrollIntoView === "function"
-    ) {
+    if (messagesEndRef.current && typeof messagesEndRef.current.scrollIntoView === "function") {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
-  }, [messages, isThinking, isOpen]);
+  }, [messages, isThinking]);
 
   async function sendQuestion(questionText) {
     const trimmed = String(questionText || "").trim();
     if (!trimmed || isThinking) return;
 
-    const userMsg = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: trimmed
-    };
-
+    const userMsg = { id: `user-${Date.now()}`, role: "user", content: trimmed };
     const nextMessages = [...messages, userMsg];
     setMessages(nextMessages);
     setInput("");
@@ -311,16 +189,11 @@ export function OverthinkerChat({
       const response = await fetch("/api/overthinker", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: apiHistory,
-          dashboardContext
-        })
+        body: JSON.stringify({ messages: apiHistory, dashboardContext })
       });
 
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(payload?.error || `Falha ao consultar o Overthinker (${response.status})`);
-      }
+      if (!response.ok) throw new Error(payload?.error || `Erro ${response.status}`);
 
       setMessages((prev) => [
         ...prev,
@@ -338,11 +211,6 @@ export function OverthinkerChat({
     }
   }
 
-  function handleSubmit(event) {
-    event.preventDefault();
-    sendQuestion(input);
-  }
-
   function handleKeyDown(event) {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
@@ -352,31 +220,196 @@ export function OverthinkerChat({
 
   function handleReset() {
     if (isThinking) return;
-    setMessages([INITIAL_ASSISTANT_MESSAGE]);
+    setMessages([initialMessage]);
     setErrorText("");
     const isCoarsePointer =
       typeof window !== "undefined" &&
       typeof window.matchMedia === "function" &&
       window.matchMedia("(pointer: coarse)").matches;
-    if (!isCoarsePointer) {
-      inputRef.current?.focus({ preventScroll: true });
-    }
+    if (!isCoarsePointer) inputRef.current?.focus({ preventScroll: true });
   }
 
-  const hasUserMessages = messages.some((m) => m.role === "user");
+  return (
+    <div className="ot-body">
+      <header className="overthinker-header">
+        <div className="overthinker-brand">
+          <div className="overthinker-header-orb">
+            <OverthinkerOrbIcon size={26} isThinking={isThinking} />
+          </div>
+          <div className="overthinker-title-wrap">
+            <div className="overthinker-title-row">
+              <h3>Overthinker</h3>
+              <span className="overthinker-chip">
+                <Sparkles size={10} aria-hidden="true" />
+                {mode === "github" ? "AI · GitHub Live" : "AI · World Intel"}
+              </span>
+            </div>
+            <p>{statusSubtitle}</p>
+          </div>
+        </div>
+        <div className="overthinker-header-actions">
+          {hasUserMessages && (
+            <button type="button" className="overthinker-icon-btn" onClick={handleReset} title="Reiniciar conversa" aria-label="Reiniciar conversa">
+              <RotateCcw size={14} aria-hidden="true" />
+            </button>
+          )}
+          {showCloseButton && onClose && (
+            <button type="button" className="overthinker-icon-btn" onClick={onClose} title="Fechar" aria-label="Fechar">
+              <X size={16} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+      </header>
+
+      <div className="overthinker-messages" aria-live="polite">
+        {messages.map((msg) => (
+          <motion.div
+            key={msg.id}
+            className={`overthinker-msg ${msg.role}`}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {msg.role === "assistant" ? (
+              <FormattedMessage content={msg.content} />
+            ) : (
+              <p className="overthinker-md-p">{msg.content}</p>
+            )}
+            {msg.usedGithubTool && (
+              <span className="overthinker-tool-badge">
+                <GitBranch size={11} aria-hidden="true" />
+                Repositório consultado ao vivo na API do GitHub
+              </span>
+            )}
+          </motion.div>
+        ))}
+
+        {!hasUserMessages && !isThinking && (
+          <div className="overthinker-suggestions">
+            {quickPrompts.map((prompt) => (
+              <button key={prompt} type="button" className="overthinker-suggestion-chip" onClick={() => sendQuestion(prompt)}>
+                {prompt}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {isThinking && (
+          <motion.div className="overthinker-thinking" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}>
+            <span className="overthinker-thinking-dots" aria-hidden="true">
+              <span /><span /><span />
+            </span>
+            <span>
+              {mode === "github" ? "Overthinking o portfólio & GitHub..." : "Analisando inteligência global..."}
+            </span>
+          </motion.div>
+        )}
+
+        {errorText && <div className="overthinker-error" role="alert">{errorText}</div>}
+        <div ref={messagesEndRef} />
+      </div>
+
+      <form className="overthinker-input-bar" onSubmit={(e) => { e.preventDefault(); sendQuestion(input); }}>
+        <textarea
+          ref={inputRef}
+          rows={1}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={inputPlaceholder}
+          maxLength={800}
+          disabled={isThinking}
+          aria-label="Mensagem para o Overthinker"
+        />
+        <button type="submit" className="overthinker-send-btn" disabled={isThinking || !input.trim()} aria-label="Enviar pergunta">
+          <ArrowUp size={16} aria-hidden="true" />
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------ GitHub inline panel (embedded in GitHub Dashboard)
+export function OverthinkerGitHubPanel({ profile, skills, languages, totalLanguagesCount, syncedAt, statusText }) {
+  const dashboardContext = useMemo(
+    () => ({
+      activeView: "github",
+      worldAnalysisSnapshot: null,
+      statusText: statusText || "Online",
+      syncedAt: syncedAt || null,
+      profile: profile
+        ? {
+            login: profile.login,
+            name: profile.name,
+            bio: profile.bio,
+            public_repos: profile.public_repos,
+            updated_at: profile.updated_at,
+            html_url: profile.html_url
+          }
+        : null,
+      topSkillsDisplayed: Array.isArray(skills)
+        ? skills.map((s) => ({ name: s.name, percentage: s.percentage, stars: s.stars, type: s.type }))
+        : [],
+      languageDonutBreakdown: {
+        totalLanguagesCount: totalLanguagesCount ?? 0,
+        slices: Array.isArray(languages) ? languages.map((l) => ({ name: l.name, percent: l.percent })) : []
+      },
+      spokenLanguages: SPOKEN_LANGUAGES
+    }),
+    [profile, skills, languages, totalLanguagesCount, syncedAt, statusText]
+  );
 
   return (
-    <div
-      id="overthinker-container"
-      className={isOpen ? "is-open" : ""}
-      ref={containerRef}
-    >
-      {/* Chamativo orbital AI trigger button — pure visual magnetism, zero text CTA */}
+    <div className="github-ot-panel">
+      <OverthinkerChatBody
+        mode="github"
+        initialMessage={INITIAL_GITHUB_MSG}
+        quickPrompts={QUICK_PROMPTS_GITHUB}
+        dashboardContext={dashboardContext}
+        inputPlaceholder="Pergunte sobre skills, projetos, idiomas ou experiência do Mikael..."
+        statusSubtitle="Analista neural do portfólio & GitHub ao vivo"
+      />
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------ World floating widget (bottom-left, unchanged UX)
+export function OverthinkerChat({ activeView = "world", worldSnapshot = null, statusText = "Online" }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  const dashboardContext = useMemo(
+    () => ({
+      activeView: "world",
+      worldAnalysisSnapshot: worldSnapshot,
+      statusText,
+      profile: null,
+      topSkillsDisplayed: [],
+      languageDonutBreakdown: { totalLanguagesCount: 0, slices: [] },
+      spokenLanguages: SPOKEN_LANGUAGES
+    }),
+    [worldSnapshot, statusText]
+  );
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const handler = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [isOpen]);
+
+  // only render floating widget in world view
+  if (activeView !== "world") return null;
+
+  return (
+    <div id="overthinker-container" className={isOpen ? "is-open" : ""} ref={containerRef}>
       <motion.button
         id="overthinker-toggle"
         type="button"
         className={`overthinker-trigger${isOpen ? " active" : ""}`}
-        aria-label={isOpen ? "Fechar assistente Overthinker" : "Abrir assistente IA Overthinker"}
+        aria-label={isOpen ? "Fechar assistente Overthinker" : "Abrir assistente IA Overthinker — World Intel"}
         aria-expanded={isOpen}
         aria-controls="overthinker-panel"
         onClick={() => setIsOpen((prev) => !prev)}
@@ -386,7 +419,7 @@ export function OverthinkerChat({
         <span className="overthinker-aura" aria-hidden="true" />
         <span className="overthinker-conic-ring" aria-hidden="true" />
         <span className="overthinker-trigger-surface">
-          <OverthinkerOrbIcon size={36} isThinking={isThinking} />
+          <OverthinkerOrbIcon size={36} />
         </span>
       </motion.button>
 
@@ -396,137 +429,22 @@ export function OverthinkerChat({
             id="overthinker-panel"
             className="overthinker-panel"
             role="dialog"
-            aria-label="Overthinker — Assistente IA do Dashboard"
+            aria-label="Overthinker — Analista de Inteligência Global"
             initial={{ opacity: 0, y: 16, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.96 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           >
-            <header className="overthinker-header">
-              <div className="overthinker-brand">
-                <div className="overthinker-header-orb">
-                  <OverthinkerOrbIcon size={26} isThinking={isThinking} />
-                </div>
-                <div className="overthinker-title-wrap">
-                  <div className="overthinker-title-row">
-                    <h3>Overthinker</h3>
-                    <span className="overthinker-chip">
-                      <Sparkles size={10} aria-hidden="true" />
-                      AI · GitHub Live
-                    </span>
-                  </div>
-                  <p>Analista neural do portfólio & API GitHub</p>
-                </div>
-              </div>
-
-              <div className="overthinker-header-actions">
-                {hasUserMessages && (
-                  <button
-                    type="button"
-                    className="overthinker-icon-btn"
-                    onClick={handleReset}
-                    title="Reiniciar conversa"
-                    aria-label="Reiniciar conversa"
-                  >
-                    <RotateCcw size={14} aria-hidden="true" />
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="overthinker-icon-btn"
-                  onClick={() => setIsOpen(false)}
-                  title="Fechar"
-                  aria-label="Fechar Overthinker"
-                >
-                  <X size={16} aria-hidden="true" />
-                </button>
-              </div>
-            </header>
-
-            <div className="overthinker-messages" aria-live="polite">
-              {messages.map((msg) => (
-                <motion.div
-                  key={msg.id}
-                  className={`overthinker-msg ${msg.role}`}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {msg.role === "assistant" ? (
-                    <FormattedMessage content={msg.content} />
-                  ) : (
-                    <p className="overthinker-md-p">{msg.content}</p>
-                  )}
-
-                  {msg.usedGithubTool && (
-                    <span className="overthinker-tool-badge">
-                      <GitBranch size={11} aria-hidden="true" />
-                      Repositório consultado ao vivo na API do GitHub
-                    </span>
-                  )}
-                </motion.div>
-              ))}
-
-              {!hasUserMessages && !isThinking && (
-                <div className="overthinker-suggestions">
-                  {QUICK_PROMPTS.map((prompt) => (
-                    <button
-                      key={prompt}
-                      type="button"
-                      className="overthinker-suggestion-chip"
-                      onClick={() => sendQuestion(prompt)}
-                    >
-                      {prompt}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {isThinking && (
-                <motion.div
-                  className="overthinker-thinking"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <span className="overthinker-thinking-dots" aria-hidden="true">
-                    <span />
-                    <span />
-                    <span />
-                  </span>
-                  <span>Overthinking dados do dashboard & GitHub...</span>
-                </motion.div>
-              )}
-
-              {errorText && (
-                <div className="overthinker-error" role="alert">
-                  {errorText}
-                </div>
-              )}
-
-              <div ref={messagesEndRef} />
-            </div>
-
-            <form className="overthinker-input-bar" onSubmit={handleSubmit}>
-              <textarea
-                ref={inputRef}
-                rows={1}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Pergunte sobre projetos, skills ou o GitHub..."
-                maxLength={800}
-                disabled={isThinking}
-                aria-label="Mensagem para o Overthinker"
-              />
-              <button
-                type="submit"
-                className="overthinker-send-btn"
-                disabled={isThinking || !input.trim()}
-                aria-label="Enviar pergunta"
-              >
-                <ArrowUp size={16} aria-hidden="true" />
-              </button>
-            </form>
+            <OverthinkerChatBody
+              mode="world"
+              initialMessage={INITIAL_WORLD_MSG}
+              quickPrompts={QUICK_PROMPTS_WORLD}
+              dashboardContext={dashboardContext}
+              inputPlaceholder="Pergunte sobre geopolítica, economia, conflitos, previsões..."
+              statusSubtitle="Analista de inteligência global ao vivo"
+              showCloseButton
+              onClose={() => setIsOpen(false)}
+            />
           </motion.section>
         )}
       </AnimatePresence>

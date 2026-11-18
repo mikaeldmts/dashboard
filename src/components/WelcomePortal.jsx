@@ -248,14 +248,25 @@ export function WelcomePortal({ onEnterWorld, onEnterGithub }) {
             </div>
 
             <h1 className="welcome-headline">
-              Inteligência planetária em tempo real e engenharia orientada a dados.
+              Bem-vindo ao meu mundo de análise de dados.
             </h1>
 
             <p className="welcome-lead">
-              Explore um globo 3D interativo onde cada país revela acontecimentos ao vivo —
-              geopolítica, conflitos, tecnologia, economia e atividade sísmica — combinados a
-              gráficos macroeconômicos e previsões geradas por IA.
+              Um espaço onde tecnologia, geopolítica e engenharia de dados se encontram.
+              Explore inteligência global ao vivo, métricas de código e um assistente de IA
+              treinado para falar sobre cada detalhe do meu trabalho.
             </p>
+
+            <div className="welcome-tools-stack">
+              <span>React</span>
+              <span>Node.js</span>
+              <span>Python</span>
+              <span>Groq AI</span>
+              <span>Firebase</span>
+              <span>Vercel</span>
+              <span>d3-geo</span>
+              <span>REST APIs</span>
+            </div>
 
             <div className="welcome-cta-row">
               <motion.button
@@ -267,7 +278,7 @@ export function WelcomePortal({ onEnterWorld, onEnterGithub }) {
                 whileTap={{ scale: 0.98 }}
               >
                 <Globe2 size={18} aria-hidden="true" />
-                <span>Ir para o Dashboard</span>
+                <span>Entrar no Dashboard</span>
                 <ArrowRight size={17} className="welcome-btn-arrow" aria-hidden="true" />
               </motion.button>
 
@@ -290,8 +301,8 @@ export function WelcomePortal({ onEnterWorld, onEnterGithub }) {
             aria-label="Módulos disponíveis na plataforma"
           >
             <div className="welcome-spec-header">
-              <span>ARQUITETURA DO SISTEMA</span>
-              <strong>02 AMBIENTES INTEGRADOS</strong>
+              <span>MÓDULOS DA SUITE</span>
+              <strong>02 AMBIENTES · 1 IA</strong>
             </div>
 
             <div className="welcome-spec-list">
@@ -302,8 +313,22 @@ export function WelcomePortal({ onEnterWorld, onEnterGithub }) {
                 <div>
                   <h2>Realtime World Analysis</h2>
                   <p>
-                    Globo terrestre interativo com inspeção por país, feed global ao vivo,
-                    sensores USGS/NASA e séries do Banco Mundial.
+                    Globo 3D com 177 países clicáveis, feeds de notícias ao vivo, sensores
+                    sísmicos da USGS, dados da NASA EONET e séries macroeconômicas do Banco
+                    Mundial em tempo real.
+                  </p>
+                </div>
+              </div>
+
+              <div className="welcome-spec-item">
+                <div className="welcome-spec-icon">
+                  <Cpu size={17} aria-hidden="true" />
+                </div>
+                <div>
+                  <h2>GitHub Dashboard + Overthinker</h2>
+                  <p>
+                    Perfil profissional completo com métricas de código, linguagens, idiomas e
+                    assistente de IA dedicado a responder tudo sobre a minha trajetória técnica.
                   </p>
                 </div>
               </div>
@@ -315,21 +340,8 @@ export function WelcomePortal({ onEnterWorld, onEnterGithub }) {
                 <div>
                   <h2>Previsões Estratégicas com IA</h2>
                   <p>
-                    Síntese executiva via Groq AI calculando probabilidades de curto e médio
-                    prazo, vetores de risco e gatilhos críticos.
-                  </p>
-                </div>
-              </div>
-
-              <div className="welcome-spec-item">
-                <div className="welcome-spec-icon">
-                  <Cpu size={17} aria-hidden="true" />
-                </div>
-                <div>
-                  <h2>GitHub Engineering Intelligence</h2>
-                  <p>
-                    Métricas reais de código, distribuição de linguagens, idiomas e assistente
-                    neural Overthinker acessível pelo menu hambúrguer.
+                    Motor Groq AI gerando sínteses executivas, probabilidades e gatilhos de
+                    risco para curto e médio prazo com base em dados ao vivo.
                   </p>
                 </div>
               </div>

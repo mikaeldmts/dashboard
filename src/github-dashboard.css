@@ -1,0 +1,114 @@
+/* ================================================================
+   GitHub Dashboard — Two-Column Layout with Inline Overthinker
+   ================================================================ */
+.github-dashboard-layout {
+  position: relative;
+  z-index: 1;
+  max-width: 1420px;
+  margin: 0 auto;
+  padding: 24px 24px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(380px, 0.72fr);
+  grid-template-rows: auto 1fr;
+  gap: 20px;
+  min-height: calc(100dvh - 60px);
+  align-items: start;
+}
+
+.github-dashboard-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  /* Scroll independently if content overflows */
+  min-width: 0;
+}
+
+/* Chat column: sticky beside the cards */
+.github-dashboard-chat-col {
+  position: sticky;
+  top: calc(60px + 16px); /* topbar height + gap */
+  height: calc(100dvh - 60px - 40px);
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+}
+
+.github-ot-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(11, 17, 30, 0.84);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px -24px rgba(0, 0, 0, 0.7);
+}
+
+.ot-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+/* The .overthinker-messages inside .ot-body must grow and scroll */
+.ot-body .overthinker-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Footer: layout stretches down to footer */
+.github-dashboard-layout > footer {
+  grid-column: 1 / -1;
+  margin-top: auto;
+}
+
+/* Welcome tool stack pills */
+.welcome-tools-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -4px 0 2px;
+}
+
+.welcome-tools-stack span {
+  display: inline-block;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.26);
+  background: rgba(14, 25, 44, 0.78);
+  color: #93c5fd;
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.welcome-tools-stack span:hover {
+  border-color: rgba(125, 211, 252, 0.52);
+  background: rgba(20, 36, 64, 0.9);
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .github-dashboard-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    min-height: auto;
+  }
+
+  .github-dashboard-chat-col {
+    position: relative;
+    top: 0;
+    height: 72vh;
+    min-height: 480px;
+  }
+
+  .github-dashboard-layout > footer {
+    grid-column: 1;
+  }
+}
