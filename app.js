@@ -24,8 +24,6 @@ const el = {
   githubUpdated: document.getElementById("githubUpdated"),
   syncedAt: document.getElementById("syncedAt"),
   status: document.getElementById("status"),
-  repoCards: document.getElementById("repoCards"),
-  repoCountNote: document.getElementById("repoCountNote"),
   skillsGrid: document.getElementById("skillsGrid"),
   skillsLoading: document.getElementById("skillsLoading"),
   skillsCountNote: document.getElementById("skillsCountNote")
@@ -304,59 +302,6 @@ function updateUI(profile) {
   el.syncedAt.textContent = formatDate(new Date().toISOString());
 }
 
-function createRepoCard(repo) {
-  const link = document.createElement("a");
-  link.className = "repo-link";
-  link.href = repo.html_url;
-  link.target = "_blank";
-  link.rel = "noreferrer";
-
-  const card = document.createElement("article");
-  card.className = "repo-card";
-
-  const title = document.createElement("h3");
-  title.className = "repo-title";
-  title.textContent = repo.name;
-
-  const desc = document.createElement("p");
-  desc.className = "repo-desc";
-  desc.textContent = repo.description || "Sem descricao.";
-
-  const meta = document.createElement("p");
-  meta.className = "repo-meta";
-  meta.textContent = `Linguagem: ${repo.language || "-"} | Stars: ${repo.stargazers_count ?? 0}`;
-
-  const cta = document.createElement("p");
-  cta.className = "repo-cta";
-  cta.textContent = "Clique aqui para acessar o repositorio";
-
-  card.append(title, desc, meta, cta);
-  link.appendChild(card);
-  return link;
-}
-
-function renderRepoCards(repos) {
-  if (!Array.isArray(repos) || repos.length === 0) {
-    el.repoCountNote.textContent = "Nenhum repositorio encontrado";
-    el.repoCards.innerHTML = "";
-
-    const emptyCard = document.createElement("article");
-    emptyCard.className = "repo-card empty";
-    emptyCard.innerHTML = '<p class="label">Nenhum repositorio publico disponivel.</p>';
-    el.repoCards.appendChild(emptyCard);
-    return;
-  }
-
-  el.repoCountNote.textContent = `${repos.length} repositorio(s) encontrados`;
-  el.repoCards.innerHTML = "";
-
-  const fragment = document.createDocumentFragment();
-  repos.forEach((repo) => {
-    fragment.appendChild(createRepoCard(repo));
-  });
-  el.repoCards.appendChild(fragment);
-}
-
 function buildStars(percentage) {
   const totalStars = 5;
   const filledStars = Math.max(1, Math.round((percentage / 100) * totalStars));
@@ -470,8 +415,8 @@ function createSkillCard(skill) {
 
   const iconBadge = document.createElement("span");
   iconBadge.className = "skill-icon";
-  iconBadge.style.backgroundColor = `rgba(${rgb}, 0.16)`;
-  iconBadge.style.borderColor = `rgba(${rgb}, 0.45)`;
+  iconBadge.style.backgroundColor = `rgba(${rgb}, 0.12)`;
+  iconBadge.style.borderColor = `rgba(${rgb}, 0.3)`;
 
   const icon = document.createElement("i");
   icon.className = iconClass;
@@ -496,9 +441,16 @@ function createSkillCard(skill) {
   bar.className = "skill-bar";
   const progress = document.createElement("div");
   progress.className = "skill-progress";
-  progress.style.width = `${skill.percentage}%`;
-  progress.style.background = `linear-gradient(90deg, ${color}, ${color}cc)`;
+  progress.style.width = "0%";
+  progress.style.background = `linear-gradient(90deg, ${color}, ${color}aa)`;
   bar.appendChild(progress);
+
+  // Animate the progress bar after a short delay
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      progress.style.width = `${skill.percentage}%`;
+    });
+  });
 
   const percent = document.createElement("p");
   percent.className = "skill-percentage";
@@ -518,7 +470,7 @@ function createSkillCard(skill) {
 
   const type = document.createElement("span");
   type.className = "skill-type";
-  type.style.borderColor = `rgba(${rgb}, 0.45)`;
+  type.style.borderColor = `rgba(${rgb}, 0.3)`;
   type.textContent = skill.type;
 
   details.append(metric, type);
@@ -620,14 +572,12 @@ function applyCachedData(profileEntry, reposEntry) {
   }
 
   if (Array.isArray(reposEntry?.data)) {
-    renderRepoCards(reposEntry.data);
     renderSkillsCards(reposEntry.data);
   }
 }
 
 function applyFallbackSnapshot(statusMessage) {
   updateUI(FALLBACK_PROFILE);
-  renderRepoCards(FALLBACK_REPOS);
   renderSkillsCards(FALLBACK_REPOS);
   el.status.textContent = statusMessage;
 }
@@ -682,7 +632,6 @@ async function refreshDashboard() {
     }
 
     if (Array.isArray(reposData)) {
-      renderRepoCards(reposData);
       renderSkillsCards(reposData);
     }
 
@@ -709,7 +658,6 @@ async function refreshDashboard() {
     } else {
       el.status.textContent = "Erro";
       el.bio.textContent = error.message;
-      el.repoCountNote.textContent = "Falha ao carregar";
       if (el.skillsCountNote) el.skillsCountNote.textContent = "Falha ao analisar";
       if (el.skillsLoading) el.skillsLoading.style.display = "none";
     }
