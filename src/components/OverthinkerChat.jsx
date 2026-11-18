@@ -238,8 +238,14 @@ export function OverthinkerChat({
 
   useEffect(() => {
     if (!isOpen) return undefined;
+    const isCoarsePointer =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(pointer: coarse)").matches;
+    if (isCoarsePointer) return undefined;
+
     const timer = setTimeout(() => {
-      inputRef.current?.focus();
+      inputRef.current?.focus({ preventScroll: true });
     }, 80);
     return () => clearTimeout(timer);
   }, [isOpen]);
@@ -344,7 +350,13 @@ export function OverthinkerChat({
     if (isThinking) return;
     setMessages([INITIAL_ASSISTANT_MESSAGE]);
     setErrorText("");
-    inputRef.current?.focus();
+    const isCoarsePointer =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(pointer: coarse)").matches;
+    if (!isCoarsePointer) {
+      inputRef.current?.focus({ preventScroll: true });
+    }
   }
 
   const hasUserMessages = messages.some((m) => m.role === "user");

@@ -35,6 +35,16 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-x: none;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   font-family: var(--sans);
@@ -43,7 +53,29 @@ body {
   background-color: var(--bg-0);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-x: none;
+  max-width: 100%;
   overflow-x: hidden;
+}
+
+button,
+a,
+input,
+textarea,
+select,
+summary,
+#chat-widget-container,
+#overthinker-container {
+  touch-action: manipulation;
+}
+
+input,
+textarea,
+select {
+  font-size: 16px;
 }
 
 h1,
@@ -1185,13 +1217,14 @@ h2 {
 #chat-name,
 #chat-message {
   width: 100%;
-  padding: 10px 14px;
+  padding: 9px 13px;
   background: rgba(18, 24, 38, 0.7);
   border: 1px solid rgba(130, 150, 180, 0.12);
   border-radius: 12px;
   color: var(--text);
   font-family: inherit;
-  font-size: 0.82rem;
+  font-size: 16px;
+  line-height: 1.35;
   transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
   resize: none;
 }
@@ -1415,7 +1448,7 @@ h2 {
 
   #chat-name,
   #chat-message {
-    font-size: 14px;
+    font-size: 16px;
     padding: 9px 12px;
   }
 
@@ -1941,8 +1974,8 @@ h2 {
   background: rgba(18, 24, 38, 0.75);
   color: var(--text);
   font-family: inherit;
-  font-size: 0.82rem;
-  line-height: 1.4;
+  font-size: 16px;
+  line-height: 1.35;
   resize: none;
   transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
 }
@@ -2020,7 +2053,7 @@ h2 {
   }
 
   .overthinker-input-bar textarea {
-    font-size: 14px;
+    font-size: 16px;
   }
 }
 

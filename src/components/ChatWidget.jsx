@@ -66,11 +66,17 @@ export function ChatWidget() {
 
   useEffect(() => {
     if (!isOpen) return undefined;
+    const isCoarsePointer =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(pointer: coarse)").matches;
+    if (isCoarsePointer) return undefined;
+
     const id = setTimeout(() => {
       if (hasSubmitted) {
-        closeButtonRef.current?.focus();
+        closeButtonRef.current?.focus({ preventScroll: true });
       } else {
-        nameInputRef.current?.focus();
+        nameInputRef.current?.focus({ preventScroll: true });
       }
     }, 60);
     return () => clearTimeout(id);
