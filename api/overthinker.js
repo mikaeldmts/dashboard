@@ -1,12 +1,21 @@
 const GITHUB_USERNAME = process.env.GH_USERNAME || "mikaeldmts";
 const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
-const PRIMARY_MODEL = "llama-3.3-70b-versatile";
-const FALLBACK_MODEL = "llama-3.1-8b-instant";
+const GROQ_MODELS_ENDPOINT = "https://api.groq.com/openai/v1/models";
+const PREFERRED_MODELS = [
+  process.env.GROQ_MODEL,
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b"
+].filter(Boolean);
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
 let githubOverviewCache = {
   timestamp: 0,
   data: null
+};
+
+let groqModelsCache = {
+  timestamp: 0,
+  models: null
 };
 
 const repoDetailsCache = new Map();
@@ -290,13 +299,64 @@ const TOOLS = [
   }
 ];
 
+const NON_CHAT_MODEL_PATTERN = /(whisper|tts|orpheus|guard|safeguard|embed|rerank|vision-preview)/i;
+
+async function discoverAccessibleGroqModels(apiKey) {
+  const now = Date.now();
+  if (groqModelsCache.models && now - groqModelsCache.timestamp < 30 * 60 * 1000) {
+    return groqModelsCache.models;
+  }
+
+  try {
+    const response = await fetch(GROQ_MODELS_ENDPOINT, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json"
+      }
+    });
+    if (!response.ok) {
+      return [];
+    }
+    const payload = await response.json();
+    const list = Array.isArray(payload?.data)
+      ? payload.data
+          .filter((m) => m && typeof m.id === "string" && m.active !== false)
+          .map((m) => m.id)
+          .filter((id) => !NON_CHAT_MODEL_PATTERN.test(id))
+      : [];
+
+    if (list.length > 0) {
+      groqModelsCache = { timestamp: now, models: list };
+    }
+    return list;
+  } catch {
+    return [];
+  }
+}
+
+async function resolveCandidateModels(apiKey) {
+  const discovered = await discoverAccessibleGroqModels(apiKey);
+  if (!discovered.length) {
+    return PREFERRED_MODELS;
+  }
+
+  const discoveredSet = new Set(discovered);
+  const prioritized = PREFERRED_MODELS.filter((id) => discoveredSet.has(id));
+  const extras = discovered.filter((id) => !prioritized.includes(id));
+  return [...prioritized, ...extras].slice(0, 4);
+}
+
 async function callGroqCompletion({ apiKey, model, messages, useTools = true }) {
   const payload = {
     model,
     messages,
     temperature: 0.55,
-    max_tokens: 700
+    max_completion_tokens: 1600
   };
+
+  if (model.startsWith("openai/gpt-oss-")) {
+    payload.reasoning_effort = "low";
+  }
 
   if (useTools) {
     payload.tools = TOOLS;
@@ -402,32 +462,46 @@ export default async function handler(req, res) {
   }
 
   try {
-    const liveGithub = await getLiveGithubOverview(GITHUB_USERNAME);
+    const [liveGithub, candidateModels] = await Promise.all([
+      getLiveGithubOverview(GITHUB_USERNAME),
+      resolveCandidateModels(apiKey)
+    ]);
+
     const systemPrompt = buildSystemPrompt(liveGithub, body?.dashboardContext || null);
     const baseMessages = [{ role: "system", content: systemPrompt }, ...history];
 
-    let activeModel = PRIMARY_MODEL;
-    let completion = await callGroqCompletion({
-      apiKey,
-      model: activeModel,
-      messages: baseMessages,
-      useTools: true
-    });
+    let activeModel = candidateModels[0] || "openai/gpt-oss-120b";
+    let completion = null;
 
-    // Fallback to fast model if primary hits rate limit or tool error
-    if (!completion.ok) {
-      activeModel = FALLBACK_MODEL;
+    for (let i = 0; i < candidateModels.length; i += 1) {
+      const modelCandidate = candidateModels[i];
+      activeModel = modelCandidate;
+
+      // Try with GitHub repo inspection tool first on top preferred models
+      if (i < 2) {
+        completion = await callGroqCompletion({
+          apiKey,
+          model: modelCandidate,
+          messages: baseMessages,
+          useTools: true
+        });
+        if (completion.ok) break;
+      }
+
+      // Retry without tools in case a model rejects tool definitions
       completion = await callGroqCompletion({
         apiKey,
-        model: activeModel,
+        model: modelCandidate,
         messages: baseMessages,
         useTools: false
       });
+      if (completion.ok) break;
     }
 
-    if (!completion.ok) {
+    if (!completion || !completion.ok) {
       const apiErrMsg =
-        completion.data?.error?.message || `Falha na API Groq (HTTP ${completion.status})`;
+        completion?.data?.error?.message ||
+        `Falha na API Groq (HTTP ${completion?.status || 502})`;
       res.statusCode = 502;
       res.setHeader("Content-Type", "application/json");
       res.end(JSON.stringify({ error: apiErrMsg }));
