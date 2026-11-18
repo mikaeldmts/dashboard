@@ -263,6 +263,13 @@ h2 {
   align-items: stretch;
 }
 
+.bento-mid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+  align-items: stretch;
+}
+
 /* ================================================================
    Hero Card
    ================================================================ */
@@ -478,88 +485,139 @@ h2 {
 }
 
 /* ================================================================
-   Skills Explainer Accordion
+   Donut Chart (Languages Breakdown)
    ================================================================ */
-details.skills-explainer-details {
-  margin-bottom: 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--surface-1);
-  overflow: hidden;
+.chart-card {
+  display: flex;
+  flex-direction: column;
 }
 
-details.skills-explainer-details summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 12px 16px;
+.chart-wrap {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-size: 0.86rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  user-select: none;
+  gap: 24px;
+  flex: 1;
+}
+
+.donut-container {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.donut-container svg {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
   transition: background var(--transition);
 }
 
-details.skills-explainer-details summary::-webkit-details-marker {
-  display: none;
+.legend-item:hover {
+  background: var(--surface-2);
 }
 
-details.skills-explainer-details summary:hover {
-  background: rgba(130, 150, 180, 0.06);
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
 }
 
-.summary-left {
+.legend-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.legend-value {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ================================================================
+   Spoken Languages / Idiomas
+   ================================================================ */
+.langs-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.langs-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.lang-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  transition: all var(--transition);
 }
 
-.summary-left i {
+.lang-item:hover {
+  border-color: var(--line-hover);
+  background: var(--surface-2);
+  transform: translateX(4px);
+}
+
+.lang-flag {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.lang-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lang-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.lang-level {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.lang-level.native {
   color: var(--accent);
-  font-size: 0.9rem;
-}
-
-.summary-chevron {
-  color: var(--muted);
-  font-size: 0.72rem;
-  transition: transform 200ms ease;
-}
-
-details.skills-explainer-details[open] .summary-chevron {
-  transform: rotate(180deg);
-}
-
-.skills-explainer-body {
-  padding: 0 16px 16px;
-  border-top: 1px solid var(--line);
-  padding-top: 14px;
-  display: grid;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 0.85rem;
-  line-height: 1.55;
-}
-
-.skills-explainer-body p {
-  margin: 0;
-}
-
-.skills-explainer-body strong {
-  color: var(--text-secondary);
-}
-
-.skills-explainer-body ul {
-  margin: 0;
-  padding-left: 18px;
-  display: grid;
-  gap: 4px;
-}
-
-.skills-legend {
-  border-top: 1px solid var(--line);
-  padding-top: 10px;
 }
 
 /* ================================================================
@@ -794,6 +852,10 @@ details.skills-explainer-details[open] .summary-chevron {
   .bento-top {
     grid-template-columns: 1fr;
   }
+
+  .bento-mid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
@@ -826,6 +888,11 @@ details.skills-explainer-details[open] .summary-chevron {
 
   .skills-grid {
     grid-template-columns: 1fr;
+  }
+
+  .chart-wrap {
+    flex-direction: column;
+    gap: 16px;
   }
 
   .site-footer-inner {

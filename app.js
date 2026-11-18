@@ -26,7 +26,10 @@ const el = {
   status: document.getElementById("status"),
   skillsGrid: document.getElementById("skillsGrid"),
   skillsLoading: document.getElementById("skillsLoading"),
-  skillsCountNote: document.getElementById("skillsCountNote")
+  skillsCountNote: document.getElementById("skillsCountNote"),
+  langDonut: document.getElementById("langDonut"),
+  langLegend: document.getElementById("langLegend"),
+  chartNote: document.getElementById("chartNote")
 };
 
 const SKILL_COLORS = {
@@ -399,7 +402,7 @@ function analyzeSkillsFromRepos(repos) {
     });
   });
 
-  return mergedSkills.sort((a, b) => b.percentage - a.percentage).slice(0, 14);
+  return mergedSkills.sort((a, b) => b.percentage - a.percentage).slice(0, 4);
 }
 
 function createSkillCard(skill) {
@@ -477,6 +480,102 @@ function createSkillCard(skill) {
   card.append(header, level, bar, percent, description, details);
 
   return card;
+}
+
+function renderDonutChart(repos) {
+  if (!el.langDonut || !el.langLegend || !el.chartNote) return;
+
+  // Aggregate language bytes from non-fork repos
+  const langBytes = {};
+  let totalBytes = 0;
+
+  repos
+    .filter((r) => !r.fork)
+    .forEach((repo) => {
+      const lang = repo.language;
+      if (!lang) return;
+      const bytes = Math.max(Number(repo.size || 0), 1) * 1024;
+      langBytes[lang] = (langBytes[lang] || 0) + bytes;
+      totalBytes += bytes;
+    });
+
+  if (totalBytes === 0) {
+    el.chartNote.textContent = "Sem dados";
+    return;
+  }
+
+  // Sort and take top 6, rest grouped as "Outros"
+  const sorted = Object.entries(langBytes).sort((a, b) => b[1] - a[1]);
+  const top = sorted.slice(0, 6);
+  const otherBytes = sorted.slice(6).reduce((sum, [, b]) => sum + b, 0);
+  if (otherBytes > 0) {
+    top.push(["Outros", otherBytes]);
+  }
+
+  const OTHER_COLOR = "#4b5563";
+
+  // Build data with percentages
+  const data = top.map(([name, bytes]) => ({
+    name,
+    bytes,
+    percent: Math.round((bytes / totalBytes) * 100),
+    color: name === "Outros" ? OTHER_COLOR : getSkillColor(name)
+  }));
+
+  // Ensure percentages sum to 100
+  const sumPercent = data.reduce((s, d) => s + d.percent, 0);
+  if (sumPercent !== 100 && data.length > 0) {
+    data[0].percent += 100 - sumPercent;
+  }
+
+  el.chartNote.textContent = `${sorted.length} linguagem(ns)`;
+
+  // --- SVG Donut ---
+  const size = 160;
+  const strokeWidth = 24;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const cx = size / 2;
+  const cy = size / 2;
+
+  let currentOffset = 0;
+  const circles = data.map((d) => {
+    const dashLength = (d.percent / 100) * circumference;
+    const dashGap = circumference - dashLength;
+    const offset = -currentOffset;
+    currentOffset += dashLength;
+
+    return `<circle
+      cx="${cx}" cy="${cy}" r="${radius}"
+      fill="none"
+      stroke="${d.color}"
+      stroke-width="${strokeWidth}"
+      stroke-dasharray="${dashLength} ${dashGap}"
+      stroke-dashoffset="${offset}"
+      stroke-linecap="round"
+      style="transition: stroke-dasharray 600ms cubic-bezier(0.16, 1, 0.3, 1);"
+    />`;
+  }).join("");
+
+  el.langDonut.innerHTML = `
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform: rotate(-90deg);">
+      <circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="rgba(130,150,180,0.08)" stroke-width="${strokeWidth}" />
+      ${circles}
+    </svg>
+  `;
+
+  // --- Legend ---
+  el.langLegend.innerHTML = data
+    .map(
+      (d) => `
+      <div class="legend-item">
+        <span class="legend-dot" style="background: ${d.color};"></span>
+        <span class="legend-label">${d.name}</span>
+        <span class="legend-value">${d.percent}%</span>
+      </div>
+    `
+    )
+    .join("");
 }
 
 function renderSkillsCards(repos) {
@@ -572,12 +671,14 @@ function applyCachedData(profileEntry, reposEntry) {
   }
 
   if (Array.isArray(reposEntry?.data)) {
+    renderDonutChart(reposEntry.data);
     renderSkillsCards(reposEntry.data);
   }
 }
 
 function applyFallbackSnapshot(statusMessage) {
   updateUI(FALLBACK_PROFILE);
+  renderDonutChart(FALLBACK_REPOS);
   renderSkillsCards(FALLBACK_REPOS);
   el.status.textContent = statusMessage;
 }
@@ -632,6 +733,7 @@ async function refreshDashboard() {
     }
 
     if (Array.isArray(reposData)) {
+      renderDonutChart(reposData);
       renderSkillsCards(reposData);
     }
 

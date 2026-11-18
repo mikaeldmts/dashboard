@@ -125,38 +125,82 @@
         </section>
       </div>
 
-      <!-- Skills & Proficiency -->
-      <section class="card skills-card" style="animation-delay: 220ms">
+      <!-- Languages Donut + Spoken Languages -->
+      <div class="bento-mid">
+        <section class="card chart-card" style="animation-delay: 200ms">
+          <div class="section-head">
+            <div class="section-title-group">
+              <i class="fas fa-chart-pie"></i>
+              <h2>Linguagens</h2>
+            </div>
+            <p id="chartNote" class="section-note">Carregando...</p>
+          </div>
+          <div class="chart-wrap">
+            <div id="langDonut" class="donut-container">
+              <!-- SVG donut rendered by JS -->
+            </div>
+            <div id="langLegend" class="donut-legend">
+              <!-- Legend rendered by JS -->
+            </div>
+          </div>
+        </section>
+
+        <section class="card langs-card" style="animation-delay: 260ms">
+          <div class="section-head">
+            <div class="section-title-group">
+              <i class="fas fa-globe"></i>
+              <h2>Idiomas</h2>
+            </div>
+          </div>
+          <div class="langs-grid">
+            <div class="lang-item">
+              <span class="lang-flag">🇧🇷</span>
+              <div class="lang-info">
+                <span class="lang-name">Português</span>
+                <span class="lang-level native">Nativo</span>
+              </div>
+            </div>
+            <div class="lang-item">
+              <span class="lang-flag">🇺🇸</span>
+              <div class="lang-info">
+                <span class="lang-name">Inglês</span>
+                <span class="lang-level">Fluente</span>
+              </div>
+            </div>
+            <div class="lang-item">
+              <span class="lang-flag">🇫🇷</span>
+              <div class="lang-info">
+                <span class="lang-name">Francês</span>
+                <span class="lang-level">Intermediário</span>
+              </div>
+            </div>
+            <div class="lang-item">
+              <span class="lang-flag">🇨🇳</span>
+              <div class="lang-info">
+                <span class="lang-name">Mandarim</span>
+                <span class="lang-level">Básico</span>
+              </div>
+            </div>
+            <div class="lang-item">
+              <span class="lang-flag">🇮🇱</span>
+              <div class="lang-info">
+                <span class="lang-name">Hebraico</span>
+                <span class="lang-level">Básico</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Skills & Proficiency (Top 4) -->
+      <section class="card skills-card" style="animation-delay: 320ms">
         <div class="section-head">
           <div class="section-title-group">
             <i class="fas fa-microchip"></i>
-            <h2>Skills & Proficiência</h2>
+            <h2>Top Skills</h2>
           </div>
           <p id="skillsCountNote" class="section-note">Aguardando análise...</p>
         </div>
-
-        <details class="skills-explainer-details">
-          <summary>
-            <span class="summary-left">
-              <i class="fas fa-circle-info"></i>
-              <span>Como a proficiência é calculada automaticamente?</span>
-            </span>
-            <i class="fas fa-chevron-down summary-chevron"></i>
-          </summary>
-          <div class="skills-explainer-body">
-            <p>
-              Os dados abaixo são extraídos em tempo real dos repositórios públicos do GitHub. O algoritmo pondera:
-            </p>
-            <ul>
-              <li><strong>Volume de código</strong> por linguagem (proporção de bytes nos projetos)</li>
-              <li><strong>Frequência de uso</strong> em múltiplos repositórios independentes</li>
-              <li><strong>Diversidade tecnológica</strong> inferida pelo ecossistema e contexto das aplicações</li>
-            </ul>
-            <p class="skills-legend">
-              As estrelas representam o nível de domínio (1–5) e a barra reflete a força relativa da tecnologia no portfólio.
-            </p>
-          </div>
-        </details>
 
         <div id="skillsLoading" class="skills-loading">
           <div class="loader-dot"></div>
