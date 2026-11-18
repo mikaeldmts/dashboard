@@ -5,13 +5,30 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5500",
     "dev:open": "vite --host 127.0.0.1 --port 5500 --open /",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "test": "vitest run",
     "sync:profile": "node ./scripts/sync-profile.mjs"
   },
   "dependencies": {
+    "@tsparticles/engine": "^4.6.0",
+    "@tsparticles/react": "^4.6.0",
+    "@tsparticles/slim": "^4.6.0",
     "dotenv": "^16.6.1",
-    "firebase-admin": "^12.7.0"
+    "firebase": "^13.4.0",
+    "firebase-admin": "^12.7.0",
+    "framer-motion": "^14.14.0",
+    "lucide-react": "^1.75.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
-    "vite": "^7.1.12"
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "jsdom": "^31.0.1",
+    "playwright": "^1.65.1",
+    "vite": "^7.1.12",
+    "vitest": "^5.1.0"
   }
 }
