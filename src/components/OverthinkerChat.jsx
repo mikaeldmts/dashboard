@@ -185,6 +185,8 @@ function OverthinkerOrbIcon({ size = 34, isThinking = false }) {
 }
 
 export function OverthinkerChat({
+  activeView = "world",
+  worldSnapshot = null,
   profile,
   skills,
   languages,
@@ -204,6 +206,8 @@ export function OverthinkerChat({
 
   const dashboardContext = useMemo(
     () => ({
+      activeView,
+      worldAnalysisSnapshot: worldSnapshot,
       statusText: statusText || "Online",
       syncedAt: syncedAt || null,
       profile: profile
@@ -233,7 +237,7 @@ export function OverthinkerChat({
       },
       spokenLanguages: SPOKEN_LANGUAGES
     }),
-    [profile, skills, languages, totalLanguagesCount, syncedAt, statusText]
+    [activeView, worldSnapshot, profile, skills, languages, totalLanguagesCount, syncedAt, statusText]
   );
 
   useEffect(() => {

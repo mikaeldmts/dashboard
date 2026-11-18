@@ -239,12 +239,17 @@ function buildSystemPrompt(liveGithub, clientContext) {
 - Use formatação limpa com **negrito**, listas curtas, \`código\` quando citar tecnologias e links em formato Markdown \`[texto](url)\` quando citar repositórios ou o perfil do GitHub.
 
 ## Tudo Sobre Este Dashboard (Arquitetura e Funcionalidades)
-1. **Propósito**: Dashboard profissional e painel de inteligência em tempo real de Mikael F. de Matos (@mikaeldmts), hospedado na **Vercel**.
-2. **Stack do Dashboard**:
-   - **Frontend**: React 19 + Vite 7, estilizado com Design System próprio em Frosted Glass escuro (\`#06080f\`), tipografia **Inter** e **JetBrains Mono**.
-   - **Animações e Visual**: **Framer Motion** (transições spring, entrada escalonada dos cards e micro-interações) + **@tsparticles/react** (partículas fluidas interativas no fundo que reagem ao cursor do mouse).
-   - **Seções da Página**:
-     - **Topbar**: Indicador de status da conexão em tempo real e botão de sincronização com a API do GitHub (usa cache inteligente no \`localStorage\` com \`ETag\` / \`304 Not Modified\` para preservar rate limit).
+1. **Propósito**: Suite de inteligência em tempo real e portfólio avançado de engenharia de Mikael F. de Matos (@mikaeldmts), hospedado na **Vercel**.
+2. **Fluxo de Entrada e Menu Hambúrguer**:
+   - **Página de Boas-Vindas (Observatório)**: Entrada imersiva com horizonte orbital em Canvas, saudação nos 5 idiomas do Mikael e botão **"Ir para o Dashboard"** que leva direto ao **Realtime World Analysis**.
+   - **Menu Hambúrguer (canto superior esquerdo)**: Alterna entre **Realtime World Analysis** (módulo principal) e **GitHub Dashboard** (módulo de telemetria de código).
+3. **Módulo Principal — Realtime World Analysis**:
+   - **Globo 3D Interativo**: Renderizado em Canvas HiDPI com projeção ortográfica (\`d3-geo\` + \`topojson-client\` + \`world-atlas\`), com 177 países clicáveis, busca rápida e faróis pulsantes ao vivo.
+   - **Fontes em Tempo Real (\`/api/world-intel\`)**: Notícias globais e por país ao vivo, abalos sísmicos M4.5+ das últimas 24h (**USGS**), fenômenos naturais ativos (**NASA EONET**), séries macroeconômicas de PIB e Inflação (**Banco Mundial**) e **Previsões Estratégicas com IA (Groq)** calculando probabilidades e gatilhos de curto e médio prazo.
+4. **Módulo Secundário — GitHub Dashboard**:
+   - **Frontend**: React 19 + Vite 7, estilizado com Design System próprio escuro (\`#06080f\`), tipografia **Inter** e **JetBrains Mono**, **Framer Motion** e **@tsparticles/react**.
+   - **Seções do GitHub Dashboard**:
+     - **Topbar**: Indicador de status da conexão em tempo real e botão de sincronização.
      - **Hero Card**: Foto/avatar oficial do GitHub, nome, \`@mikaeldmts\`, bio pública e link direto para o perfil.
      - **Telemetria & Sync**: Total de repositórios públicos, data do último update no GitHub e horário da última sincronização local.
      - **Gráfico Donut de Linguagens**: Calcula a proporção de bytes de código entre os repositórios públicos (não-fork), exibindo as principais linguagens de programação com leitura central interativa ao passar o mouse.

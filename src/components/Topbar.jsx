@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { RefreshCw } from "lucide-react";
+import { Globe2, RefreshCw } from "lucide-react";
+import { HamburgerMenu } from "./HamburgerMenu.jsx";
 
 function GitHubMark() {
   return (
@@ -16,20 +17,27 @@ function GitHubMark() {
 }
 
 export function Topbar({
+  activeView = "github",
+  onSelectView,
   statusText = "Conectando...",
   statusVariant = "connecting",
   isLoading = false,
   isRateLimited = false,
   onRefresh
 }) {
+  const isWorld = activeView === "world";
   const isHealthy = statusVariant === "online" || statusVariant === "cache";
   const isBusy = isLoading || statusVariant === "updating" || statusVariant === "connecting";
 
   const refreshLabel = isRateLimited
     ? "Atualização bloqueada temporariamente por rate limit da API"
     : isBusy
-      ? "Sincronizando dados do GitHub..."
-      : "Atualizar dados do GitHub";
+      ? isWorld
+        ? "Sincronizando inteligência global..."
+        : "Sincronizando dados do GitHub..."
+      : isWorld
+        ? "Atualizar inteligência global em tempo real"
+        : "Atualizar dados do GitHub";
 
   return (
     <motion.header
@@ -38,18 +46,26 @@ export function Topbar({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className="topbar-inner">
+      <div className={`topbar-inner ${isWorld ? "topbar-inner-wide" : ""}`}>
         <div className="brand">
+          {typeof onSelectView === "function" && (
+            <HamburgerMenu activeView={activeView} onSelectView={onSelectView} />
+          )}
+
           <motion.div
             className="brand-icon"
             whileHover={{ scale: 1.06, rotate: 4 }}
             transition={{ type: "spring", stiffness: 320, damping: 20 }}
           >
-            <GitHubMark />
+            {isWorld ? <Globe2 size={18} aria-hidden="true" /> : <GitHubMark />}
           </motion.div>
           <div className="brand-meta">
-            <span className="brand-kicker">Realtime Dashboard</span>
-            <span className="brand-title">GitHub Intelligence</span>
+            <span className="brand-kicker">
+              {isWorld ? "Planetary Observatory" : "Realtime Dashboard"}
+            </span>
+            <span className="brand-title">
+              {isWorld ? "Realtime World Analysis" : "GitHub Intelligence"}
+            </span>
           </div>
         </div>
 

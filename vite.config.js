@@ -13,6 +13,10 @@ function localVercelApiPlugin() {
         const { default: overthinkerHandler } = await import("./api/overthinker.js");
         await overthinkerHandler(req, res);
       });
+      server.middlewares.use("/api/world-intel", async (req, res) => {
+        const { default: worldIntelHandler } = await import("./api/world-intel.js");
+        await worldIntelHandler(req, res);
+      });
     }
   };
 }
@@ -42,6 +46,7 @@ export default defineConfig(({ mode }) => {
             if (id.includes("firebase") || id.includes("@firebase")) return "vendor-firebase";
             if (id.includes("@tsparticles")) return "vendor-particles";
             if (id.includes("framer-motion") || id.includes("motion-")) return "vendor-motion";
+            if (id.includes("d3-") || id.includes("topojson") || id.includes("world-atlas")) return "vendor-globe";
             if (id.includes("react")) return "vendor-react";
             return undefined;
           }

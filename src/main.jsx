@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
+import "./world.css";
 import App from "./App.jsx";
 
 function lockPageZoom() {
@@ -25,7 +26,7 @@ function lockPageZoom() {
     { passive: false }
   );
 
-  // Block rapid double-tap zoom on text/containers without eating fast button taps
+  // Block rapid double-tap zoom on text/containers without eating fast button or globe taps
   let lastTouchEnd = 0;
   document.addEventListener(
     "touchend",
@@ -33,7 +34,11 @@ function lockPageZoom() {
       const now = Date.now();
       const isInteractive =
         event.target instanceof Element &&
-        Boolean(event.target.closest("button, a, input, textarea, select, summary"));
+        Boolean(
+          event.target.closest(
+            "button, a, input, textarea, select, summary, #interactive-world-globe"
+          )
+        );
       if (!isInteractive && now - lastTouchEnd <= 300 && event.touches.length === 0) {
         event.preventDefault();
       }
